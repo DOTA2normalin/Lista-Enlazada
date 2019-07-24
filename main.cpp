@@ -1,222 +1,216 @@
 #include <iostream>
-
 using namespace std;
 
 template<typename T>
-class Lista;
-
-template<typename T>
-class Iterator;
-
-
-template<typename T>
-class Node
-{
-    Node<T> *sgte;
+class Nodo{
     T data;
-    public:
+    Nodo<T> *next;
+    template<typename U>
+    friend class Lista;
 
-
-    Node(T data){this->data = data;}
-
-    void imprimirN ()const
-    {
-        cout << data << "-> ";
-    }
-    friend class Lista<T>;
-    friend class Iterator<T>;
+    template<typename N>
+    friend class Iterator;
 };
 
 template<typename T>
-class Lista
-{
-
-    Node<T> *head;
-    Node<T> *actual;
-    public:
-
-    Lista(T data)
-    {
-        head = new Node<T>(data);
+class Lista{
+public:
+    Nodo<T> *head;
+public:
+    Lista(){
+        head=NULL;
     }
-
-    void add(T data)
-    {
-
-        Node<T> *actual = head;
-        while(actual->sgte != NULL){actual = actual->sgte;}
-        actual->sgte = new Node<T>(data);
-    }
-
-
-    void addF(T data)
-    {
-        Node<T> *newHead = new Node<T>(data);
-        newHead->sgte = head;
-        head = newHead;
-    }
-
-    void deleteV(T x)
-    {
-
-        if(head->data == x)
+    ~Lista(){
+        Nodo<T> *recor=head;
+        Nodo<T> *bor;
+        while(recor!=NULL)
         {
-            Node<T> *temp = head;
-            head = head->sgte;
-            delete temp;
-            return;
+            bor=recor;
+            recor=recor->next;
+            delete bor;
         }
-
-        Node<T> *actual = head;
-        while(actual->sgte != NULL)
-        {
-            if(actual->sgte->data == x)
-            {
-                actual->sgte = actual->sgte->sgte;
-                return;
-            }
-            actual = actual->sgte;
-        }
-
     }
+    void insertar(T x);
+    void imprimir();
+    void buscar(T x);
+    void eliminar(T x);
+    template<typename N>
+    friend class Iterator;
 
-    void imprimir()const
-    {
-        Node<T> *temp = head;
-        if (!head) {
-            cout << "Lista no inicializada " << endl;
-        } else {
-            while (temp) {
-                temp->imprimirN();
-                if (!temp->sgte) cout << "NULL";
-                    temp = temp->sgte;
-            }
-      }
-      cout << endl << endl;
-    }
-    friend class Iterator<T>;
 };
 
+template<typename T>
+void Lista<T>::insertar(T x)
+{
+    Nodo<T> *nuevo=new Nodo<T>();
+    nuevo->data=x;
+
+    Nodo<T> *aux1=head;
+    Nodo<T> *aux2;
+
+    while(aux1!=NULL &&  aux1->data< x)
+    {
+        aux2=aux1;
+        aux1=aux1->next;
+    }
+    if(head==aux1)
+    {
+        head=nuevo;
+    }
+    else
+    {
+        aux2->next=nuevo;
+    }
+    nuevo->next=aux1;
+}
 
 template<typename T>
-class Iterator
+void Lista<T>::imprimir()
 {
-    Node<T> *iter;
-    Node<T> *head;
-    Node<T> *ante;
-
-    public:
-
-    void operator =(Lista<T> a)
+    Nodo<T> *rec=head;
+    while(rec!=NULL)
     {
-        iter = a.head;
-        head = a.head;
+        cout<<rec->data<<"->";
+        rec=rec->next;
     }
-
-    void operator++()
+    cout<<"NULL";
+}
+template<typename T>
+void Lista<T>::buscar(T x)
+{
+    Nodo<T>* actual=head;
+    bool existe=false;
+    while(actual!=NULL && actual->data<=x)
     {
-        ante = iter;
-        iter = iter->sgte;
+        if(actual->data==x)
+            existe=true;
+        actual=actual->next;
     }
-
-    void operator--()
+    if(existe==true)
     {
-        iter = ante;
+        cout<<"el numero si existe y es ="<<x;
     }
-
-    bool operator==(T x)
+    else{
+        cout<<"el numero no existe";
+    }
+}
+template<typename T>
+void Lista<T>::eliminar(T x)
+{
+    Nodo<T> *aux=head;
+    Nodo<T> *anterior=NULL;
+    while((aux!=NULL) && (aux->data!=x))
     {
-        if(x == iter->data)
-        {
-            return true;
+        anterior=aux;
+        aux=aux->next;
+    }
+    if(aux==NULL)
+    {
+        cout<<"EL ELEMENTO NO EXISTE";
+    }
+    else if(anterior==NULL)
+    {
+        head=head->next;
+        delete aux;
+    }
+    else{
+        anterior->next=aux->next;
+        delete aux;
+    }
+}
+
+template<typename T>
+class Iterator{
+    Nodo<T> *ptr;
+    Nodo<T> *anterior;
+    
+public:
+    void operator=(Nodo<T> *nodo)
+    {
+        ptr=nodo;
+        anterior=nodo;
+    }
+    int operator ++()
+    {
+        anterior=ptr;
+        ptr=ptr->next;
+    }
+    int operator--()
+    {
+        ptr=anterior;
+    }
+    T operator *()
+    {
+        return ptr->data;
+    }
+    void operator ==(T nodo)
+    {
+        if(ptr->data==nodo)
+            cout<<"se encontro el dato :"<<ptr->data;
+        else{
+            cout<<"no- se encontro "<<endl; 
         }
-        else
-            return false;
     }
-    void operator*()
+    void operator !=(T nodo)
     {
-        datos();
+        if(ptr->data!=nodo)
+            cout<<"es diferente el dato :"<<ptr->data;
+        else{
+            cout<<"no se encontro "<<endl;
+        }
     }
-
-    void datos()
+    int datos()
     {
-        cout<<iter->data<<"\n";
+        cout<<ptr->data<<" ";
     }
     bool hasMore()
     {
-        if(iter->sgte != NULL)
-            return true;
-        else
+        if(ptr->next!= NULL)
             return false;
+        else
+            return true;
     }
 
-    void found(T n)
+    bool found(T n)
     {
-        if(head->data == n)
+        if(ptr->data == n)
         {
-            cout<<"Se encontro!!"<<n<<"\n";
+            return true;
         }
-
-        Node<T> * temp = head;
-        while(temp->sgte != NULL)
+        Nodo<T> *temp = ptr;
+        while(temp->next != NULL)
+        {   
+            if(temp->next->data == n)
             {
-                if(temp->sgte->data == n)
-                {
-                    cout<<"Se encontro!!"<<n<<"\n";
-                    break;
-                }
-                else if(temp->sgte == NULL)
-                {
-                    if(temp->data == n)
-                        cout<<"Se encontro!!"<<n<<"\n";
-                }
+                return true;
             }
-
+        }
     }
 };
 
-int main()
-{
-    Lista<int> a(9);
-    a.add(5);
-    a.add(4);
-    a.add(3);
-    a.add(2);
-    a.add(15);
-    a.addF(4);
-    a.imprimir();
-    a.deleteV(4);
-    a.deleteV(4);
-    a.imprimir();
-    /*
-    for(iterador; iterador.getIter() == NULL; ++iterador)
-    {
-        iterador.datos();
-        ++iterador;
-    }
-    */
+int main(){
+    Lista<int> l;
+    l.insertar(-8);
+    l.insertar(8);
+    l.insertar(5);
+    l.insertar(4);
+    l.insertar(15);
+    l.insertar(50);
+    l.insertar(20);
+    l.imprimir();
+    cout<<endl;
+    l.buscar(8);
+    l.eliminar(8);
+    cout<<endl;
+    l.imprimir();
     Iterator<int> iterador;
-    iterador = a;
-    iterador.hasMore();
+    iterador=l.head;
+    iterador.datos();
     *iterador;
     ++iterador;
     --iterador;
     *iterador;
-    ++iterador;
-    iterador == 9;
-    iterador == 5;
-
-    /*
-    while(iterador.hasMore())
-    {
-        iterador.datos();
-        ++iterador;
-        if(!iterador.hasMore())
-            iterador.datos();
-
-    }
-    */
-
-    iterador.found(5);
-    return 0;
+    iterador==1;
+    iterador!=5;
+	return 0;
 }
